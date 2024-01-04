@@ -5,9 +5,10 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
 public class UnibusApplication {
-
 	public static void main(String[] args) {
-		SpringApplication.run(UnibusApplication.class, args);
+		System.out.println("hello");
+		SpringApplication.run(UnibusApplication.class, args
+		);
 	}
 
 }
