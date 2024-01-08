@@ -7,12 +7,13 @@ import lombok.Getter;
 @Builder
 public class AvailableBusDto {
 
-    private int busId;
+    private String busId;
     private String busNum;
     private String vehicleNum;
     private Congestion congestion;
-    private BusType busType;
+    private String busType;
     private String arrivalTime;
+    private String orderInRoute;
 
 }
 
@@ -27,17 +28,5 @@ enum Congestion {
 
     Congestion(int state) {
         this.state = state;
-    }
-}
-
-enum BusType {
-    간선버스(3),
-    지선버스(4),
-    순환버스(5);
-
-    private final int length;
-
-    BusType(int length) {
-        this.length = length;
     }
 }
