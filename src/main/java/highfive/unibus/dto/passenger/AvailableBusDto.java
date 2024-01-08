@@ -1,14 +1,19 @@
 package highfive.unibus.dto.passenger;
 
+import lombok.Builder;
 import lombok.Getter;
 
+@Getter
+@Builder
 public class AvailableBusDto {
 
-    private int busNum;
-    private int vehicleNum;
-    private Congestion congestion;
-    private BusType busType;
-
+    private String busId;
+    private String busNum;
+    private String vehicleNum = "1725";
+    private Congestion congestion = Congestion.여유;
+    private String busType;
+    private String arrivalTime;
+    private String orderInRoute;
 
 }
 
@@ -23,16 +28,5 @@ enum Congestion {
 
     Congestion(int state) {
         this.state = state;
-    }
-}
-
-enum BusType {
-    간선버스(3),
-    지선버스(4);
-
-    private final int length;
-
-    BusType(int length) {
-        this.length = length;
     }
 }
