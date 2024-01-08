@@ -25,15 +25,3 @@ public class StationPassengerInfo {
     private int getOffNum;
 
 }
-
-@Data
-@Embeddable
-class StationPassengerId implements Serializable {
-
-    @Column(name = "bus_id")
-    private int busId;
-
-    @Column(name = "station_id")
-    private int stationId;
-
-}
