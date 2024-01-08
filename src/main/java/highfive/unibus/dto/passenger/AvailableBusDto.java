@@ -9,8 +9,8 @@ public class AvailableBusDto {
 
     private String busId;
     private String busNum;
-    private String vehicleNum = "1725";
-    private Congestion congestion = Congestion.여유;
+    private String vehicleNum;
+    private Congestion congestion;
     private String busType;
     private String arrivalTime;
     private String orderInRoute;
