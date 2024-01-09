@@ -1,9 +1,14 @@
 package highfive.unibus.service;
 
+import highfive.unibus.domain.StationPassengerInfo;
+import highfive.unibus.domain.StationPassengerInfoId;
 import highfive.unibus.dto.passenger.AvailableBusDto;
+import highfive.unibus.dto.passenger.BusReservationDto;
 import highfive.unibus.dto.passenger.StationDto;
+import highfive.unibus.repository.StationPassengerInfoRepository;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -21,10 +26,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 @Service
+@RequiredArgsConstructor
 public class PassengerService {
 
     @Value("${api.secret-key}")
     private String secretKey;
+    private final StationPassengerInfoRepository stationPassengerInfoRepository;
     private final JSONParser parser = new JSONParser();
 
     public ArrayList<AvailableBusDto> getAvailableBusListByStationNums(String departureStationNum, String destinationStationNum) {
@@ -156,6 +163,43 @@ public class PassengerService {
         conn.disconnect();
 
         return result;
+    }
+
+    public void reserveBus(BusReservationDto busReservationDto) {
+        int busId = Integer.parseInt(busReservationDto.getBusId());
+        int departureStationNum = Integer.parseInt(busReservationDto.getDepartureStationNum());
+        int destinationStationNum = Integer.parseInt(busReservationDto.getDestinationStationNum());
+
+        StationPassengerInfo departureInfo = makeStationPassengerInfo(busId, departureStationNum);
+        StationPassengerInfo destinationInfo = makeStationPassengerInfo(busId, destinationStationNum);;
+
+        if (busReservationDto.getDisabilityType().equals("visual")) { // 시각 장애
+            departureInfo.setVisualDisabilityNum(departureInfo.getVisualDisabilityNum() + 1);
+        } else { // 신체 장애
+            departureInfo.setPhysicalDisabilityNum(departureInfo.getPhysicalDisabilityNum() + 1);
+        }
+
+        destinationInfo.setGetOffNum(destinationInfo.getGetOffNum() + 1);
+    }
+
+    private StationPassengerInfo makeStationPassengerInfo(int busId, int stationNum) {
+        StationPassengerInfoId stationPassengerInfoId = new StationPassengerInfoId(busId, stationNum);
+        StationPassengerInfo stationPassengerInfo;
+
+        if (stationPassengerInfoRepository.findById(stationPassengerInfoId).isPresent()) {
+            stationPassengerInfo = stationPassengerInfoRepository.findById(stationPassengerInfoId).get();
+        } else {
+            stationPassengerInfo = StationPassengerInfo.builder()
+                    .stationPassengerInfoId(stationPassengerInfoId)
+                    .visualDisabilityNum(0)
+                    .physicalDisabilityNum(0)
+                    .getOffNum(0)
+                    .build();
+
+            stationPassengerInfoRepository.save(stationPassengerInfo);
+        }
+
+        return stationPassengerInfo;
     }
 
 }

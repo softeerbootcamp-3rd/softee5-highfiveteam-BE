@@ -9,7 +9,8 @@ import java.util.TimerTask;
 public class Passenger {
 
     private String busId;
-    private String destinationNum;
+    private String departureStationNum;
+    private String destinationStatioNum;
     private Timer timer;
 
     public void timerStart() {
