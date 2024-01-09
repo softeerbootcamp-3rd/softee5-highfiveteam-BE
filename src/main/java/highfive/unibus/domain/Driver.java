@@ -1,23 +1,32 @@
 package highfive.unibus.domain;
 
-import lombok.AllArgsConstructor;
+import highfive.unibus.service.DriverService;
+import lombok.RequiredArgsConstructor;
 
 import java.util.Timer;
 import java.util.TimerTask;
 
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class Driver {
 
     private String busId;
     private String prevStationOrd;
     private Timer timer;
 
+    private final DriverService driverService;
+
+    public Driver(String busId, Timer timer, DriverService driverService) {
+        this.busId = busId;
+        this.timer = timer;
+        this.prevStationOrd = "00000";
+        this.driverService = driverService;
+    }
+
     public void timerStart() {
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
-                // 10초마다 실행할 코드
-                // api 호출하고, prevStationOrd와 비교
+                driverService.getNextStationInfo(Driver.this);
             }
         },0, 10000);
     }
@@ -26,10 +35,16 @@ public class Driver {
         timer.cancel();
     }
 
-    public Driver(String busId, Timer timer) {
-        this.busId = busId;
-        this.timer = timer;
-        this.prevStationOrd = "00000";
+    public void updateStationOrd(String stationOrd) {
+        this.prevStationOrd = stationOrd;
+    }
+
+    public String getBusId() {
+        return busId;
+    }
+
+    public String getPrevStationOrd() {
+        return prevStationOrd;
     }
 
 }

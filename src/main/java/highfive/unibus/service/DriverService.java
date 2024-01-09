@@ -1,16 +1,19 @@
 package highfive.unibus.service;
 
+import highfive.unibus.domain.Driver;
 import highfive.unibus.domain.StationPassengerInfo;
 import highfive.unibus.domain.StationPassengerInfoId;
-import highfive.unibus.dto.driver.BusInfoDto;
 import highfive.unibus.dto.driver.DriverNotificationDto;
 import highfive.unibus.repository.StationPassengerInfoRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
@@ -20,46 +23,47 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class DriverService {
 
+    @Value("${api.secret-key}")
+    private String secretKey;
     private final StationPassengerInfoRepository stationPassengerInfoRepository;
+    private final SimpMessagingTemplate simpMessagingTemplate;
 
     @Transactional
-    public DriverNotificationDto getNextStationInfo(BusInfoDto dto) {
+    public void getNextStationInfo(Driver driver) {
+
+        DriverNotificationDto dto = new DriverNotificationDto();
+
+        String busId = driver.getBusId();
+        String prevStationOrd = driver.getPrevStationOrd();
 
         try {
-            String busId = dto.getBusId();
-            String prevStationOrd = dto.getPrevStationOrd();
-
             JSONObject location = getLocationInfo(busId);
             String stationId = (String) location.get("stId");
             String stationOrd = (String) location.get("stOrd");
             String arsId = getStationNumber(stationId);
             String stationName = getStationName(arsId);
 
-//            System.out.println("busId = " + busId);
-//            System.out.println("stationId = " + stationId);
-//            System.out.println("stationOrd = " + stationOrd);
-//            System.out.println("arsId = " + arsId);
-//            System.out.println("stationName = " + stationName);
-
             StationPassengerInfoId id = new StationPassengerInfoId(Integer.parseInt(busId), Integer.parseInt(arsId));
 
             if (isStationOrdChange(prevStationOrd, stationOrd)) {
-                if (stationPassengerInfoRepository.findById(id).isPresent()) {
+                driver.updateStationOrd(stationOrd); // 버스의 정류소 순번 업데이트
+                if (stationPassengerInfoRepository.findById(id).isPresent()) { // 버스 탑승/하차 인원을 db에서 조회
                     StationPassengerInfo result = stationPassengerInfoRepository.findById(id).get();
-                    return new DriverNotificationDto(result);
-                } else {
-                    System.out.println("no reservation");
-                    return new DriverNotificationDto(stationName);
+                    dto = new DriverNotificationDto(result);
                 }
             }
+            dto.setStationName(stationName);
         } catch (Exception e) {
             System.out.println(e.toString());
         }
-        return null;
+
+        simpMessagingTemplate.convertAndSend("/topic/" + busId, dto);
+
     }
 
     private String getStationName(String arsId) throws IOException, ParseException {
@@ -67,7 +71,7 @@ public class DriverService {
         String resultType = "json";
 
         StringBuilder urlBuilder = new StringBuilder(apiUrl);
-        urlBuilder.append("?" + URLEncoder.encode("serviceKey","UTF-8") + "=0OhBU7ZCGIobDVKDeBJDpmDRqK3IRNF6jlf%2FJB2diFAf%2FfR2czYO9A4UTGcsOwppV6W2HVUeho%2FFPwXoL6DwqA%3D%3D");
+        urlBuilder.append("?" + URLEncoder.encode("serviceKey","UTF-8") + secretKey);
         urlBuilder.append("&" + URLEncoder.encode("arsId","UTF-8") + "=" + URLEncoder.encode(arsId, "UTF-8"));
         urlBuilder.append("&" + URLEncoder.encode("resultType","UTF-8") + "=" + URLEncoder.encode(resultType, "UTF-8"));
         URL url = new URL(urlBuilder.toString());
@@ -76,7 +80,7 @@ public class DriverService {
         conn.setRequestMethod("GET");
         conn.setRequestProperty("Content-type", "application/json");
 
-        System.out.println("Response code: " + conn.getResponseCode());
+//        System.out.println("Response code: " + conn.getResponseCode());
         BufferedReader rd;
         if(conn.getResponseCode() >= 200 && conn.getResponseCode() <= 300) {
             rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
@@ -100,7 +104,7 @@ public class DriverService {
         String resultType = "json";
 
         StringBuilder urlBuilder = new StringBuilder(apiUrl);
-        urlBuilder.append("?" + URLEncoder.encode("serviceKey","UTF-8") + "=0OhBU7ZCGIobDVKDeBJDpmDRqK3IRNF6jlf%2FJB2diFAf%2FfR2czYO9A4UTGcsOwppV6W2HVUeho%2FFPwXoL6DwqA%3D%3D");
+        urlBuilder.append("?" + URLEncoder.encode("serviceKey","UTF-8") + secretKey);
         urlBuilder.append("&" + URLEncoder.encode("vehId","UTF-8") + "=" + URLEncoder.encode(busId, "UTF-8"));
         urlBuilder.append("&" + URLEncoder.encode("resultType","UTF-8") + "=" + URLEncoder.encode(resultType, "UTF-8"));
         URL url = new URL(urlBuilder.toString());
@@ -133,7 +137,7 @@ public class DriverService {
         String resultType = "json";
 
         StringBuilder urlBuilder = new StringBuilder(apiUrl);
-        urlBuilder.append("?" + URLEncoder.encode("serviceKey","UTF-8") + "=0OhBU7ZCGIobDVKDeBJDpmDRqK3IRNF6jlf%2FJB2diFAf%2FfR2czYO9A4UTGcsOwppV6W2HVUeho%2FFPwXoL6DwqA%3D%3D");
+        urlBuilder.append("?" + URLEncoder.encode("serviceKey","UTF-8") + secretKey);
         urlBuilder.append("&" + URLEncoder.encode("stId","UTF-8") + "=" + URLEncoder.encode(stationId, "UTF-8"));
         urlBuilder.append("&" + URLEncoder.encode("resultType","UTF-8") + "=" + URLEncoder.encode(resultType, "UTF-8"));
         URL url = new URL(urlBuilder.toString());
