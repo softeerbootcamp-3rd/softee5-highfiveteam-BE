@@ -7,7 +7,7 @@ import lombok.Getter;
 @Builder
 public class AvailableBusDto {
 
-    private String busId;
+    private int busId;
     private String busNum;
     private String vehicleNum;
     private Congestion congestion;

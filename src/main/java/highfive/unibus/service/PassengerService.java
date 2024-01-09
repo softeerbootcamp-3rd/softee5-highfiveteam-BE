@@ -8,6 +8,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.relational.core.sql.In;
 import org.springframework.stereotype.Service;
 
 import java.io.BufferedReader;
@@ -92,7 +93,7 @@ public class PassengerService {
         for (Object bus : itemList) {
             JSONObject jsonBus = (JSONObject) bus;
             busList.add(AvailableBusDto.builder()
-                    .busId((String) jsonBus.get("vehId1"))
+                    .busId(Integer.parseInt((String) jsonBus.get("vehId1")))
                     .busNum((String) jsonBus.get("rtNm"))
                     .arrivalTime((String) jsonBus.get("arrmsg1"))
                     .busType((String) jsonBus.get("busType1"))
