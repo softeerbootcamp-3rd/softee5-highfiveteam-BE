@@ -12,13 +12,10 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -26,10 +23,7 @@ import java.util.HashMap;
 @RequiredArgsConstructor
 public class PassengerService {
 
-    @Value("${api.secret-key}")
-    private String secretKey;
     private final StationPassengerInfoRepository stationPassengerInfoRepository;
-    private final JSONParser parser = new JSONParser();
 
     public ArrayList<AvailableBusDto> getAvailableBusListByStationNums(String departureStationNum, String destinationStationNum) {
 
@@ -52,16 +46,9 @@ public class PassengerService {
     public ArrayList<StationDto> getStationsByName(String stationName) {
 
         try {
-            StringBuilder urlBuilder = new StringBuilder("http://ws.bus.go.kr/api/rest/stationinfo/getLowStationByName"); /*URL*/
-            urlBuilder.append("?" + URLEncoder.encode("serviceKey","UTF-8") + secretKey); /*Service Key*/
-            urlBuilder.append("&" + URLEncoder.encode("stSrch","UTF-8") + "=" + URLEncoder.encode(stationName, "UTF-8")); /*정류소명 검색어*/
-            urlBuilder.append("&" + URLEncoder.encode("resultType","UTF-8") + "=" + URLEncoder.encode("json", "UTF-8")); /*json 으로*/
-
-            String result = PublicApi.call(urlBuilder.toString());
-
-            JSONObject jsonObject = (JSONObject) parser.parse(result);
-            JSONObject msgBody = (JSONObject) jsonObject.get("msgBody");
-            JSONArray itemList = (JSONArray) msgBody.get("itemList");
+            String url = PublicApi.initBaseUrl("stationinfo/getLowStationByName");
+            url = PublicApi.addParamToUrl(url, "stSrch", stationName);
+            JSONArray itemList = PublicApi.call(url);
 
             ArrayList<StationDto> stations = new ArrayList<>();
             for (Object station : itemList) {
@@ -83,16 +70,9 @@ public class PassengerService {
     }
 
     public ArrayList<AvailableBusDto> getBusListByStationNum(String stationNum) throws IOException, ParseException {
-        StringBuilder urlBuilder = new StringBuilder("http://ws.bus.go.kr/api/rest/stationinfo/getLowStationByUid"); /*URL*/
-        urlBuilder.append("?" + URLEncoder.encode("serviceKey","UTF-8") + secretKey); /*Service Key*/
-        urlBuilder.append("&" + URLEncoder.encode("arsId","UTF-8") + "=" + URLEncoder.encode(stationNum, "UTF-8")); /*정류소 번호 검색어*/
-        urlBuilder.append("&" + URLEncoder.encode("resultType","UTF-8") + "=" + URLEncoder.encode("json", "UTF-8")); /*json 으로*/
-
-        String result = PublicApi.call(urlBuilder.toString());
-
-        JSONObject jsonObject = (JSONObject) parser.parse(result);
-        JSONObject msgBody = (JSONObject) jsonObject.get("msgBody");
-        JSONArray itemList = (JSONArray) msgBody.get("itemList");
+        String url = PublicApi.initBaseUrl("stationinfo/getLowStationByUid");
+        url = PublicApi.addParamToUrl(url, "arsId", stationNum);
+        JSONArray itemList = PublicApi.call(url);
 
         ArrayList<AvailableBusDto> busList = new ArrayList<>();
         for (Object bus : itemList) {

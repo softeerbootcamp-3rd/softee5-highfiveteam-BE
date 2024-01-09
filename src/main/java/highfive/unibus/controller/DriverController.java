@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Timer;
 
 @Slf4j
@@ -18,7 +19,7 @@ import java.util.Timer;
 public class DriverController {
 
     private final DriverService driverService;
-    private static HashMap<String, Driver> drivers = new HashMap<>();
+    private static Map<String, Driver> drivers = new HashMap<>();
 
     @GetMapping("/driver/start")
     public void driveStart(@RequestBody BusInfoDto dto) {

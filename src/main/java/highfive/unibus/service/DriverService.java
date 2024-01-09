@@ -68,45 +68,24 @@ public class DriverService {
     }
 
     private String getStationName(String arsId) throws IOException, ParseException {
-        StringBuilder urlBuilder = new StringBuilder("http://ws.bus.go.kr/api/rest/stationinfo/getLowStationByUid");
-        urlBuilder.append("?" + URLEncoder.encode("serviceKey","UTF-8") + secretKey);
-        urlBuilder.append("&" + URLEncoder.encode("arsId","UTF-8") + "=" + URLEncoder.encode(arsId, "UTF-8"));
-        urlBuilder.append("&" + URLEncoder.encode("resultType","UTF-8") + "=" + URLEncoder.encode("json", "UTF-8"));
+        String url = PublicApi.initBaseUrl("stationinfo/getLowStationByUid");
+        url = PublicApi.addParamToUrl(url, "arsId", arsId);
 
-        String result = PublicApi.call(urlBuilder.toString());
-
-        JSONParser jsonParser = new JSONParser();
-        JSONObject jsonObject = (JSONObject) jsonParser.parse(result);
-        JSONObject msgBody = (JSONObject) jsonObject.get("msgBody");
-        return (String) ((JSONObject) ((JSONArray) msgBody.get("itemList")).get(0)).get("stnNm");
+        return (String) PublicApi.callAndGetFisrt(url).get("stnNm");
     }
 
     public JSONObject getLocationInfo(String busId) throws IOException, ParseException {
-        StringBuilder urlBuilder = new StringBuilder("http://ws.bus.go.kr/api/rest/buspos/getBusPosByVehId");
-        urlBuilder.append("?" + URLEncoder.encode("serviceKey","UTF-8") + secretKey);
-        urlBuilder.append("&" + URLEncoder.encode("vehId","UTF-8") + "=" + URLEncoder.encode(busId, "UTF-8"));
-        urlBuilder.append("&" + URLEncoder.encode("resultType","UTF-8") + "=" + URLEncoder.encode("json", "UTF-8"));
+        String url = PublicApi.initBaseUrl("buspos/getBusPosByVehId");
+        url = PublicApi.addParamToUrl(url, "vehId", busId);
 
-        String result = PublicApi.call(urlBuilder.toString());
-
-        JSONParser jsonParser = new JSONParser();
-        JSONObject jsonObject = (JSONObject) jsonParser.parse(result);
-        JSONObject msgBody = (JSONObject) jsonObject.get("msgBody");
-        return (JSONObject) ((JSONArray) msgBody.get("itemList")).get(0);
+        return PublicApi.callAndGetFisrt(url);
     }
 
     public String getStationNumber(String stationId) throws IOException, ParseException {
-        StringBuilder urlBuilder = new StringBuilder("http://ws.bus.go.kr/api/rest/arrive/getLowArrInfoByStId");
-        urlBuilder.append("?" + URLEncoder.encode("serviceKey","UTF-8") + secretKey);
-        urlBuilder.append("&" + URLEncoder.encode("stId","UTF-8") + "=" + URLEncoder.encode(stationId, "UTF-8"));
-        urlBuilder.append("&" + URLEncoder.encode("resultType","UTF-8") + "=" + URLEncoder.encode("json", "UTF-8"));
+        String url = PublicApi.initBaseUrl("arrive/getLowArrInfoByStId");
+        url = PublicApi.addParamToUrl(url, "stId", stationId);
 
-        String result = PublicApi.call(urlBuilder.toString());
-
-        JSONParser jsonParser = new JSONParser();
-        JSONObject jsonObject = (JSONObject) jsonParser.parse(result);
-        JSONObject msgBody = (JSONObject) jsonObject.get("msgBody");
-        JSONObject stationInfo = (JSONObject) ((JSONArray) msgBody.get("itemList")).get(0);
+        JSONObject stationInfo = PublicApi.callAndGetFisrt(url);
         return (String) stationInfo.get("arsId");
     }
 
