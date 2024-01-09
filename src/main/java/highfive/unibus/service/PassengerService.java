@@ -1,6 +1,7 @@
 package highfive.unibus.service;
 
 import highfive.unibus.dto.passenger.AvailableBusDto;
+import highfive.unibus.dto.passenger.StationDto;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.json.simple.JSONArray;
@@ -26,23 +27,14 @@ public class PassengerService {
     private String secretKey;
     private final JSONParser parser = new JSONParser();
 
-    public ArrayList<AvailableBusDto> getBusListByStationNames(String departure, String destination) {
-        ArrayList<String> departureBusNums;
-        ArrayList<String> destinationBusNums;
-        ArrayList<AvailableBusDto> departureBusDtos = new ArrayList<>();
-        ArrayList<AvailableBusDto> destinationBusDtos = new ArrayList<>();
+    public ArrayList<AvailableBusDto> getAvailableBusListByStationNums(String departureStationNum, String destinationStationNum) {
 
         try {
-            departureBusNums = getStationNumByName(departure);
-            destinationBusNums = getStationNumByName(destination);
+            ArrayList<AvailableBusDto> departureBusDtos;
+            ArrayList<AvailableBusDto> destinationBusDtos;
 
-            for (String departureBusNum : departureBusNums) {
-                System.out.println(departureBusNum);
-                departureBusDtos.addAll(getBusListByStationNum(departureBusNum));
-            }
-            for (String destinationBusNum : destinationBusNums) {
-                destinationBusDtos.addAll(getBusListByStationNum(destinationBusNum));
-            }
+            departureBusDtos = getBusListByStationNum(departureStationNum);
+            destinationBusDtos = getBusListByStationNum(destinationStationNum);
 
             return getOverlapBusList(departureBusDtos, destinationBusDtos);
 
@@ -53,27 +45,37 @@ public class PassengerService {
         return null;
     }
 
-    public ArrayList<String> getStationNumByName(String stationName) throws IOException, ParseException {
-        StringBuilder urlBuilder = new StringBuilder("http://ws.bus.go.kr/api/rest/stationinfo/getLowStationByName"); /*URL*/
-        urlBuilder.append("?" + URLEncoder.encode("serviceKey","UTF-8") + secretKey); /*Service Key*/
-        urlBuilder.append("&" + URLEncoder.encode("stSrch","UTF-8") + "=" + URLEncoder.encode(stationName, "UTF-8")); /*정류소명 검색어*/
-        urlBuilder.append("&" + URLEncoder.encode("resultType","UTF-8") + "=" + URLEncoder.encode("json", "UTF-8")); /*json 으로*/
+    public ArrayList<StationDto> getStationsByName(String stationName) {
 
-        String result = callApi(urlBuilder.toString());
+        try {
+            StringBuilder urlBuilder = new StringBuilder("http://ws.bus.go.kr/api/rest/stationinfo/getLowStationByName"); /*URL*/
+            urlBuilder.append("?" + URLEncoder.encode("serviceKey","UTF-8") + secretKey); /*Service Key*/
+            urlBuilder.append("&" + URLEncoder.encode("stSrch","UTF-8") + "=" + URLEncoder.encode(stationName, "UTF-8")); /*정류소명 검색어*/
+            urlBuilder.append("&" + URLEncoder.encode("resultType","UTF-8") + "=" + URLEncoder.encode("json", "UTF-8")); /*json 으로*/
 
-        JSONObject jsonObject = (JSONObject) parser.parse(result);
-        JSONObject msgBody = (JSONObject) jsonObject.get("msgBody");
-        JSONArray itemList = (JSONArray) msgBody.get("itemList");
+            String result = callApi(urlBuilder.toString());
 
-        ArrayList<String> stationNums = new ArrayList<>();
-        for (Object station : itemList) {
-            JSONObject jsonStation = (JSONObject) station;
-            if (jsonStation.get("stNm").equals(stationName)) {
-                stationNums.add((String) jsonStation.get("arsId"));
+            JSONObject jsonObject = (JSONObject) parser.parse(result);
+            JSONObject msgBody = (JSONObject) jsonObject.get("msgBody");
+            JSONArray itemList = (JSONArray) msgBody.get("itemList");
+
+            ArrayList<StationDto> stations = new ArrayList<>();
+            for (Object station : itemList) {
+                JSONObject jsonStation = (JSONObject) station;
+                String name = (String) jsonStation.get("stNm");
+                String num = (String) jsonStation.get("arsId");
+                if (!num.equals("0")) {
+                    stations.add(new StationDto(name, num));
+                }
             }
+
+            return stations;
+
+        } catch (Exception e) {
+            e.printStackTrace();
         }
 
-        return stationNums;
+        return null;
     }
 
     public ArrayList<AvailableBusDto> getBusListByStationNum(String stationNum) throws IOException, ParseException {

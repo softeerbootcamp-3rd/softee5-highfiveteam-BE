@@ -3,6 +3,8 @@ package highfive.unibus.controller;
 import highfive.unibus.common.ApiResponse;
 import highfive.unibus.dto.passenger.AvailableBusDto;
 import highfive.unibus.dto.passenger.AvailableBusRequestDto;
+import highfive.unibus.dto.passenger.StationDto;
+import highfive.unibus.dto.passenger.StationRequestDto;
 import highfive.unibus.service.PassengerService;
 import lombok.AllArgsConstructor;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,12 +21,12 @@ public class PassengerController {
 
     private final PassengerService passengerService;
 
-    @GetMapping("/buslist")
-    public ApiResponse searchAvailableBusList(@RequestBody AvailableBusRequestDto availableBusRequestDto) {
-        ArrayList<AvailableBusDto> data = passengerService.getBusListByStationNames(availableBusRequestDto.getDeparture(), availableBusRequestDto.getDestination());
+    @GetMapping("/station")
+    public ApiResponse searchStationList(@RequestBody StationRequestDto stationRequestDto) {
+        ArrayList<StationDto> stationDtos = passengerService.getStationsByName(stationRequestDto.getSearchWord());
 
         String message;
-        if (data == null || data.size() == 0) {
+        if (stationDtos == null || stationDtos.size() == 0) {
             message = "현재 탑승 가능한 버스가 없습니다.";
         } else {
             message = "탑승 가능한 버스 조회 성공";
@@ -33,7 +35,25 @@ public class PassengerController {
         return ApiResponse.builder()
                 .code(200)
                 .message(message)
-                .data(data)
+                .data(stationDtos)
+                .build();
+    }
+
+    @GetMapping("/buslist")
+    public ApiResponse searchAvailableBusList(@RequestBody AvailableBusRequestDto availableBusRequestDto) {
+        ArrayList<AvailableBusDto> availableBusDtos = passengerService.getAvailableBusListByStationNums(availableBusRequestDto.getDepartureStationNum(), availableBusRequestDto.getDestinationStationNum());
+
+        String message;
+        if (availableBusDtos == null || availableBusDtos.size() == 0) {
+            message = "현재 탑승 가능한 버스가 없습니다.";
+        } else {
+            message = "탑승 가능한 버스 조회 성공";
+        }
+
+        return ApiResponse.builder()
+                .code(200)
+                .message(message)
+                .data(availableBusDtos)
                 .build();
     }
 
