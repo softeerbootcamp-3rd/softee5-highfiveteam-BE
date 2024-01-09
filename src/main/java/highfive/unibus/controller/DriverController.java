@@ -1,11 +1,10 @@
-package highfive.unibus.controller.driver;
+package highfive.unibus.controller;
 
 import highfive.unibus.domain.Driver;
 import highfive.unibus.dto.driver.BusInfoDto;
-import highfive.unibus.dto.driver.DriverNotificationDto;
-import highfive.unibus.repository.StationPassengerInfoRepository;
 import highfive.unibus.service.DriverService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -13,33 +12,27 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.HashMap;
 import java.util.Timer;
 
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 public class DriverController {
 
     private final DriverService driverService;
-    private final StationPassengerInfoRepository repository;
     private static HashMap<String, Driver> drivers = new HashMap<>();
 
-    @GetMapping("/driver/next")
-    public DriverNotificationDto getDriverNotification(@RequestBody BusInfoDto dto) {
-        return driverService.getNextStationInfo(dto);
-    }
-
     @GetMapping("/driver/start")
-    public void everySecond(@RequestBody BusInfoDto dto) {
-        Driver driver = new Driver(dto.getBusId(), new Timer());
+    public void driveStart(@RequestBody BusInfoDto dto) {
+        Driver driver = new Driver(dto.getBusId(), new Timer(), driverService);
         drivers.put(dto.getBusId(), driver);
-
+        log.info(dto.getBusId() + " bus drive start");
         driver.timerStart();
     }
 
     @GetMapping("/driver/stop")
-    public void stop(@RequestBody BusInfoDto dto) {
+    public void driveStop(@RequestBody BusInfoDto dto) {
         Driver driver = drivers.get(dto.getBusId());
         driver.timerFinish();
-        System.out.println("stop");
+        log.info(dto.getBusId() + " bus drive stop");
     }
-
 
 }
