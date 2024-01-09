@@ -1,18 +1,14 @@
 package highfive.unibus.controller;
 
 import highfive.unibus.common.ApiResponse;
-import highfive.unibus.dto.passenger.AvailableBusDto;
-import highfive.unibus.dto.passenger.AvailableBusRequestDto;
-import highfive.unibus.dto.passenger.StationDto;
-import highfive.unibus.dto.passenger.StationRequestDto;
+import highfive.unibus.domain.Driver;
+import highfive.unibus.dto.passenger.*;
 import highfive.unibus.service.PassengerService;
 import lombok.AllArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 
 @RestController
 @AllArgsConstructor
@@ -20,6 +16,7 @@ import java.util.ArrayList;
 public class PassengerController {
 
     private final PassengerService passengerService;
+    private static HashMap<String, Driver> drivers = new HashMap<>();
 
     @GetMapping("/station")
     public ApiResponse searchStationList(@RequestBody StationRequestDto stationRequestDto) {
@@ -54,6 +51,16 @@ public class PassengerController {
                 .code(200)
                 .message(message)
                 .data(availableBusDtos)
+                .build();
+    }
+
+    @PostMapping("/reservation")
+    public ApiResponse reserveBus(@RequestBody BusReservationDto busReservationDto) {
+        passengerService.reserveBus(busReservationDto);
+
+        return ApiResponse.builder()
+                .code(200)
+                .message("버스 예약 성공")
                 .build();
     }
 
