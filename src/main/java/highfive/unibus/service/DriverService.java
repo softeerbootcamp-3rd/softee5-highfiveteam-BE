@@ -1,5 +1,6 @@
 package highfive.unibus.service;
 
+import highfive.unibus.common.PublicApi;
 import highfive.unibus.domain.Driver;
 import highfive.unibus.domain.StationPassengerInfo;
 import highfive.unibus.domain.StationPassengerInfoId;
@@ -67,32 +68,13 @@ public class DriverService {
     }
 
     private String getStationName(String arsId) throws IOException, ParseException {
-        String apiUrl = "http://ws.bus.go.kr/api/rest/stationinfo/getLowStationByUid";
-        String resultType = "json";
-
-        StringBuilder urlBuilder = new StringBuilder(apiUrl);
+        StringBuilder urlBuilder = new StringBuilder("http://ws.bus.go.kr/api/rest/stationinfo/getLowStationByUid");
         urlBuilder.append("?" + URLEncoder.encode("serviceKey","UTF-8") + secretKey);
         urlBuilder.append("&" + URLEncoder.encode("arsId","UTF-8") + "=" + URLEncoder.encode(arsId, "UTF-8"));
-        urlBuilder.append("&" + URLEncoder.encode("resultType","UTF-8") + "=" + URLEncoder.encode(resultType, "UTF-8"));
-        URL url = new URL(urlBuilder.toString());
+        urlBuilder.append("&" + URLEncoder.encode("resultType","UTF-8") + "=" + URLEncoder.encode("json", "UTF-8"));
 
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setRequestMethod("GET");
-        conn.setRequestProperty("Content-type", "application/json");
+        String result = PublicApi.call(urlBuilder.toString());
 
-//        System.out.println("Response code: " + conn.getResponseCode());
-        BufferedReader rd;
-        if(conn.getResponseCode() >= 200 && conn.getResponseCode() <= 300) {
-            rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-        } else {
-            rd = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
-        }
-
-        String result = rd.readLine();
-        rd.close();
-        conn.disconnect();
-
-//        System.out.println(result);
         JSONParser jsonParser = new JSONParser();
         JSONObject jsonObject = (JSONObject) jsonParser.parse(result);
         JSONObject msgBody = (JSONObject) jsonObject.get("msgBody");
@@ -100,32 +82,13 @@ public class DriverService {
     }
 
     public JSONObject getLocationInfo(String busId) throws IOException, ParseException {
-        String apiUrl = "http://ws.bus.go.kr/api/rest/buspos/getBusPosByVehId";
-        String resultType = "json";
-
-        StringBuilder urlBuilder = new StringBuilder(apiUrl);
+        StringBuilder urlBuilder = new StringBuilder("http://ws.bus.go.kr/api/rest/buspos/getBusPosByVehId");
         urlBuilder.append("?" + URLEncoder.encode("serviceKey","UTF-8") + secretKey);
         urlBuilder.append("&" + URLEncoder.encode("vehId","UTF-8") + "=" + URLEncoder.encode(busId, "UTF-8"));
-        urlBuilder.append("&" + URLEncoder.encode("resultType","UTF-8") + "=" + URLEncoder.encode(resultType, "UTF-8"));
-        URL url = new URL(urlBuilder.toString());
+        urlBuilder.append("&" + URLEncoder.encode("resultType","UTF-8") + "=" + URLEncoder.encode("json", "UTF-8"));
 
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setRequestMethod("GET");
-        conn.setRequestProperty("Content-type", "application/json");
+        String result = PublicApi.call(urlBuilder.toString());
 
-//        System.out.println("Response code: " + conn.getResponseCode());
-        BufferedReader rd;
-        if(conn.getResponseCode() >= 200 && conn.getResponseCode() <= 300) {
-            rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-        } else {
-            rd = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
-        }
-
-        String result = rd.readLine();
-        rd.close();
-        conn.disconnect();
-
-//        System.out.println(result);
         JSONParser jsonParser = new JSONParser();
         JSONObject jsonObject = (JSONObject) jsonParser.parse(result);
         JSONObject msgBody = (JSONObject) jsonObject.get("msgBody");
@@ -133,30 +96,12 @@ public class DriverService {
     }
 
     public String getStationNumber(String stationId) throws IOException, ParseException {
-        String apiUrl = "http://ws.bus.go.kr/api/rest/arrive/getLowArrInfoByStId";
-        String resultType = "json";
-
-        StringBuilder urlBuilder = new StringBuilder(apiUrl);
+        StringBuilder urlBuilder = new StringBuilder("http://ws.bus.go.kr/api/rest/arrive/getLowArrInfoByStId");
         urlBuilder.append("?" + URLEncoder.encode("serviceKey","UTF-8") + secretKey);
         urlBuilder.append("&" + URLEncoder.encode("stId","UTF-8") + "=" + URLEncoder.encode(stationId, "UTF-8"));
-        urlBuilder.append("&" + URLEncoder.encode("resultType","UTF-8") + "=" + URLEncoder.encode(resultType, "UTF-8"));
-        URL url = new URL(urlBuilder.toString());
+        urlBuilder.append("&" + URLEncoder.encode("resultType","UTF-8") + "=" + URLEncoder.encode("json", "UTF-8"));
 
-        HttpURLConnection conn = (HttpURLConnection) url.openConnection();
-        conn.setRequestMethod("GET");
-        conn.setRequestProperty("Content-type", "application/json");
-
-//        System.out.println("Response code: " + conn.getResponseCode());
-        BufferedReader rd;
-        if(conn.getResponseCode() >= 200 && conn.getResponseCode() <= 300) {
-            rd = new BufferedReader(new InputStreamReader(conn.getInputStream()));
-        } else {
-            rd = new BufferedReader(new InputStreamReader(conn.getErrorStream()));
-        }
-
-        String result = rd.readLine();
-        rd.close();
-        conn.disconnect();
+        String result = PublicApi.call(urlBuilder.toString());
 
         JSONParser jsonParser = new JSONParser();
         JSONObject jsonObject = (JSONObject) jsonParser.parse(result);
