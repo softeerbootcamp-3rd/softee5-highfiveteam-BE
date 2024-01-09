@@ -37,8 +37,6 @@ public class DriverService {
     @Transactional
     public void getNextStationInfo(Driver driver) {
 
-        DriverNotificationDto dto = new DriverNotificationDto();
-
         String busId = driver.getBusId();
         String prevStationOrd = driver.getPrevStationOrd();
 
@@ -49,6 +47,8 @@ public class DriverService {
             String arsId = getStationNumber(stationId);
             String stationName = getStationName(arsId);
 
+            DriverNotificationDto dto = new DriverNotificationDto(stationName);
+
             StationPassengerInfoId id = new StationPassengerInfoId(Integer.parseInt(busId), Integer.parseInt(arsId));
 
             if (isStationOrdChange(prevStationOrd, stationOrd)) {
@@ -57,13 +57,11 @@ public class DriverService {
                     StationPassengerInfo result = stationPassengerInfoRepository.findById(id).get();
                     dto = new DriverNotificationDto(result);
                 }
+                simpMessagingTemplate.convertAndSend("/topic/" + busId, dto);
             }
-            dto.setStationName(stationName);
         } catch (Exception e) {
             System.out.println(e.toString());
         }
-
-        simpMessagingTemplate.convertAndSend("/topic/" + busId, dto);
 
     }
 

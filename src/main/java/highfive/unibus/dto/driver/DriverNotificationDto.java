@@ -11,8 +11,8 @@ public class DriverNotificationDto {
     private int visualDisabilityNum;
     private int getOffNum;
 
-    public DriverNotificationDto() {
-        this.stationName = null;
+    public DriverNotificationDto(String stationName) {
+        this.stationName = stationName;
         this.physicalDisabilityNum = 0;
         this.visualDisabilityNum = 0;
         this.getOffNum = 0;
@@ -23,10 +23,6 @@ public class DriverNotificationDto {
         this.physicalDisabilityNum = info.getPhysicalDisabilityNum();
         this.visualDisabilityNum = info.getVisualDisabilityNum();
         this.getOffNum = info.getGetOffNum();
-    }
-
-    public void setStationName(String stationName) {
-        this.stationName = stationName;
     }
 
 }
