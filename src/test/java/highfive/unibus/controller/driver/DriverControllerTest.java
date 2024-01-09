@@ -1,7 +1,5 @@
 package highfive.unibus.controller.driver;
 
-import highfive.unibus.domain.StationPassengerId;
-import highfive.unibus.domain.StationPassengerInfo;
 import highfive.unibus.dto.driver.BusInfoDto;
 import highfive.unibus.dto.driver.DriverNotificationDto;
 import highfive.unibus.repository.StationPassengerInfoRepository;

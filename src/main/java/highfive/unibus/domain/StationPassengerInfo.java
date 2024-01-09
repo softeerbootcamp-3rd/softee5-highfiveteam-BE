@@ -3,9 +3,6 @@ package highfive.unibus.domain;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.io.Serializable;
-
-
 @Getter
 @Builder
 @NoArgsConstructor
@@ -14,7 +11,7 @@ import java.io.Serializable;
 public class StationPassengerInfo {
 
     @EmbeddedId
-    private StationPassengerId stationPassengerId;
+    private StationPassengerInfoId stationPassengerInfoId;
 
     private String stationName;
 

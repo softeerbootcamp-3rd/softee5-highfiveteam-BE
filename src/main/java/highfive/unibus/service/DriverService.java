@@ -1,7 +1,7 @@
 package highfive.unibus.service;
 
-import highfive.unibus.domain.StationPassengerId;
 import highfive.unibus.domain.StationPassengerInfo;
+import highfive.unibus.domain.StationPassengerInfoId;
 import highfive.unibus.dto.driver.BusInfoDto;
 import highfive.unibus.dto.driver.DriverNotificationDto;
 import highfive.unibus.repository.StationPassengerInfoRepository;
@@ -45,7 +45,7 @@ public class DriverService {
 //            System.out.println("arsId = " + arsId);
 //            System.out.println("stationName = " + stationName);
 
-            StationPassengerId id = new StationPassengerId(Integer.parseInt(busId), Integer.parseInt(arsId));
+            StationPassengerInfoId id = new StationPassengerInfoId(Integer.parseInt(busId), Integer.parseInt(arsId));
 
             if (isStationOrdChange(prevStationOrd, stationOrd)) {
                 if (stationPassengerInfoRepository.findById(id).isPresent()) {
