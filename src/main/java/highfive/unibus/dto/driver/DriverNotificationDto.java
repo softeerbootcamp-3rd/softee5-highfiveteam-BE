@@ -1,9 +1,11 @@
 package highfive.unibus.dto.driver;
 
 import highfive.unibus.domain.StationPassengerInfo;
+import lombok.Builder;
 import lombok.Getter;
 
 @Getter
+@Builder
 public class DriverNotificationDto {
 
     private String stationName;

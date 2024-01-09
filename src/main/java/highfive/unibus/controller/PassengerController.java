@@ -1,7 +1,7 @@
 package highfive.unibus.controller;
 
 import highfive.unibus.common.ApiResponse;
-import highfive.unibus.domain.Driver;
+import highfive.unibus.domain.Passenger;
 import highfive.unibus.dto.passenger.*;
 import highfive.unibus.service.PassengerService;
 import lombok.AllArgsConstructor;
@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @AllArgsConstructor
@@ -16,11 +17,11 @@ import java.util.HashMap;
 public class PassengerController {
 
     private final PassengerService passengerService;
-    private static HashMap<String, Driver> drivers = new HashMap<>();
+    private static final Map<Integer, Passenger> passengers = new HashMap<>();
 
     @GetMapping("/station")
-    public ApiResponse searchStationList(@RequestBody StationRequestDto stationRequestDto) {
-        ArrayList<StationDto> stationDtos = passengerService.getStationsByName(stationRequestDto.getSearchWord());
+    public ApiResponse searchStationList(@RequestParam String searchWord) {
+        ArrayList<StationDto> stationDtos = passengerService.getStationsByName(searchWord);
 
         String message;
         if (stationDtos == null || stationDtos.size() == 0) {
@@ -36,7 +37,7 @@ public class PassengerController {
                 .build();
     }
 
-    @GetMapping("/buslist")
+    @PostMapping("/buslist")
     public ApiResponse searchAvailableBusList(@RequestBody AvailableBusRequestDto availableBusRequestDto) {
         ArrayList<AvailableBusDto> availableBusDtos = passengerService.getAvailableBusListByStationNums(availableBusRequestDto.getDepartureStationNum(), availableBusRequestDto.getDestinationStationNum());
 
@@ -56,6 +57,10 @@ public class PassengerController {
 
     @PostMapping("/reservation")
     public ApiResponse reserveBus(@RequestBody BusReservationDto busReservationDto) {
+        Passenger passenger = new Passenger(busReservationDto);
+        passengers.put(busReservationDto.getPassengerId(), passenger);
+        passenger.timerStart();
+
         passengerService.reserveBus(busReservationDto);
 
         return ApiResponse.builder()

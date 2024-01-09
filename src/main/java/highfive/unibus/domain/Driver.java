@@ -1,7 +1,9 @@
 package highfive.unibus.domain;
 
+import highfive.unibus.dto.passenger.StationDto;
 import highfive.unibus.service.DriverService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import java.util.Timer;
 import java.util.TimerTask;
@@ -23,12 +25,15 @@ public class Driver {
     }
 
     public void timerStart() {
+        StationDto s = new StationDto("plz", "plz");
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
-                driverService.getNextStationInfo(Driver.this);
+                driverService.send();
+                System.out.println("10초");
+//                driverService.getNextStationInfo(Driver.this);
             }
-        },0, 10000);
+        },0, 30000);
     }
 
     public void timerFinish() {

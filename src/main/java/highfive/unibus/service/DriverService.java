@@ -5,6 +5,7 @@ import highfive.unibus.domain.Driver;
 import highfive.unibus.domain.StationPassengerInfo;
 import highfive.unibus.domain.StationPassengerInfoId;
 import highfive.unibus.dto.driver.DriverNotificationDto;
+import highfive.unibus.dto.passenger.StationDto;
 import highfive.unibus.repository.StationPassengerInfoRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +35,16 @@ public class DriverService {
     private final StationPassengerInfoRepository stationPassengerInfoRepository;
     private final SimpMessagingTemplate simpMessagingTemplate;
 
+    public void send() {
+        DriverNotificationDto s = DriverNotificationDto.builder()
+                .stationName("다음 역")
+                .visualDisabilityNum(3)
+                .physicalDisabilityNum(2)
+                .getOffNum(1)
+                .build();
+        simpMessagingTemplate.convertAndSend("/sub/" + "1", s);
+    }
+
     @Transactional
     public void getNextStationInfo(Driver driver) {
 
@@ -57,7 +68,7 @@ public class DriverService {
                     StationPassengerInfo result = stationPassengerInfoRepository.findById(id).get();
                     dto = new DriverNotificationDto(result);
                 }
-                simpMessagingTemplate.convertAndSend("/topic/" + busId, dto);
+                simpMessagingTemplate.convertAndSend("/sub/" + busId, dto);
             }
         } catch (Exception e) {
             System.out.println(e.toString());

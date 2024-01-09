@@ -3,16 +3,15 @@ package highfive.unibus.service;
 import highfive.unibus.common.PublicApi;
 import highfive.unibus.domain.StationPassengerInfo;
 import highfive.unibus.domain.StationPassengerInfoId;
-import highfive.unibus.dto.passenger.AvailableBusDto;
-import highfive.unibus.dto.passenger.BusReservationDto;
-import highfive.unibus.dto.passenger.StationDto;
+import highfive.unibus.dto.passenger.*;
 import highfive.unibus.repository.StationPassengerInfoRepository;
-import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
@@ -24,12 +23,13 @@ import java.util.HashMap;
 public class PassengerService {
 
     private final StationPassengerInfoRepository stationPassengerInfoRepository;
+    private final SimpMessagingTemplate simpMessagingTemplate;
 
     public ArrayList<AvailableBusDto> getAvailableBusListByStationNums(String departureStationNum, String destinationStationNum) {
 
         try {
-            ArrayList<AvailableBusDto> departureBusDtos;
-            ArrayList<AvailableBusDto> destinationBusDtos;
+            ArrayList<BusDto> departureBusDtos;
+            ArrayList<BusDto> destinationBusDtos;
 
             departureBusDtos = getBusListByStationNum(departureStationNum);
             destinationBusDtos = getBusListByStationNum(destinationStationNum);
@@ -69,15 +69,15 @@ public class PassengerService {
         return null;
     }
 
-    public ArrayList<AvailableBusDto> getBusListByStationNum(String stationNum) throws IOException, ParseException {
+    public ArrayList<BusDto> getBusListByStationNum(String stationNum) throws IOException, ParseException {
         String url = PublicApi.initBaseUrl("stationinfo/getLowStationByUid");
         url = PublicApi.addParamToUrl(url, "arsId", stationNum);
         JSONArray itemList = PublicApi.call(url);
 
-        ArrayList<AvailableBusDto> busList = new ArrayList<>();
+        ArrayList<BusDto> busList = new ArrayList<>();
         for (Object bus : itemList) {
             JSONObject jsonBus = (JSONObject) bus;
-            busList.add(AvailableBusDto.builder()
+            busList.add(BusDto.builder()
                     .busId((String) jsonBus.get("vehId1"))
                     .busNum((String) jsonBus.get("rtNm"))
                     .arrivalTime((String) jsonBus.get("arrmsg1"))
@@ -89,21 +89,26 @@ public class PassengerService {
         return busList;
     }
 
-    public ArrayList<AvailableBusDto> getOverlapBusList(ArrayList<AvailableBusDto> departureBusList, ArrayList<AvailableBusDto> DestinationBusList) {
+    public ArrayList<AvailableBusDto> getOverlapBusList(ArrayList<BusDto> departureBusList, ArrayList<BusDto> DestinationBusList) {
         HashMap<String , OffsetAndBusDto> map = new HashMap<>();
 
-        for (AvailableBusDto departureBus : departureBusList) {
+        for (BusDto departureBus : departureBusList) {
             String departureBusNum = departureBus.getBusNum();
             int departureOrder = Integer.parseInt(departureBus.getOrderInRoute());
 
-            for (AvailableBusDto destinationBus : DestinationBusList) {
+            for (BusDto destinationBus : DestinationBusList) {
                 String destinationBusNum = destinationBus.getBusNum();
                 int destinationOrder = Integer.parseInt(destinationBus.getOrderInRoute());
 
                 if ((departureBusNum.equals(destinationBusNum)) && departureOrder < destinationOrder) {
-                    OffsetAndBusDto offsetAndBusDto = new OffsetAndBusDto(departureOrder - destinationOrder, departureBus);
+
+                    OffsetAndBusDto offsetAndBusDto = OffsetAndBusDto.builder()
+                            .offset(destinationOrder - departureOrder)
+                            .availableBusDto(new AvailableBusDto(departureBus, destinationBus.getOrderInRoute()))
+                            .build();
+
                     if (map.containsKey(departureBusNum)) {
-                        if (offsetAndBusDto.getOffset() > (destinationOrder - departureOrder)) {
+                        if (map.get(departureBusNum).getOffset() > (destinationOrder - departureOrder)) {
                             map.replace(departureBusNum, offsetAndBusDto);
                         }
                     } else {
@@ -115,7 +120,7 @@ public class PassengerService {
 
         ArrayList<AvailableBusDto> overlapBusList = new ArrayList<>();
         for (String key : map.keySet()) {
-            overlapBusList.add(map.get(key).getBusDto());
+            overlapBusList.add(map.get(key).getAvailableBusDto());
         }
 
         return overlapBusList;
@@ -158,13 +163,37 @@ public class PassengerService {
         return stationPassengerInfo;
     }
 
+    // 버스 아이디로 버스 위치 조회 (정류소 순번) - 출발지 정류소 순번이랑 비교
+    private boolean notifyDepartureStation(String busId, String stationNum) {
+
+        try {
+            String url = PublicApi.initBaseUrl("buspos/getBusPosByVehId");
+            url = PublicApi.addParamToUrl(url, "vehId", busId);
+            JSONObject object = PublicApi.callAndGetFisrt(url);
+            if (object.get("stOrd").equals(stationNum)) {
+                PassengerNotificationDto msg = PassengerNotificationDto.builder()
+                        .stationName((String) object.get("congetion"))
+                        .vehicleNum((String) object.get("plainNo"))
+                        .build();
+                simpMessagingTemplate.convertAndSend("/topic/" + "clientid", msg);
+                return true;
+            }
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return  false;
+
+    }
+
 }
 
 @Getter
-@AllArgsConstructor
+@Builder
 class OffsetAndBusDto {
 
     int offset;
-    AvailableBusDto busDto;
+    AvailableBusDto availableBusDto;
 
 }
