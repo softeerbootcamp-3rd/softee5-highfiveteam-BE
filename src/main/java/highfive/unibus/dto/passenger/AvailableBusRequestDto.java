@@ -5,7 +5,7 @@ import lombok.Getter;
 @Getter
 public class AvailableBusRequestDto {
 
-    private String departure;
-    private String destination;
+    private String departureStationNum;
+    private String destinationStationNum;
 
 }
