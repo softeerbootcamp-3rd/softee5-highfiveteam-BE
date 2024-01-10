@@ -64,15 +64,12 @@ public class DriverService {
             if (isStationOrdChange(prevStationOrd, stationOrd)) {
                 driver.updateStationOrd(stationOrd); // 버스의 정류소 순번 업데이트
                 if (stationPassengerInfoRepository.findById(id).isPresent()) { // 버스 탑승/하차 인원을 db에서 조회
-                    System.out.println("*************** 디비에서 조회 성공");
                     StationPassengerInfo result = stationPassengerInfoRepository.findById(id).get();
-                    System.out.println(result);
                     msg = new DriverNotificationDto(result, stationName);
                 } else {
                     msg = new DriverNotificationDto(stationName);
                 }
                 simpMessagingTemplate.convertAndSend("/sub/" + busId, msg);
-                System.out.println("버스 기사에게 알림" + msg.toString());
             }
         } catch (Exception e) {
             System.out.println(e.toString());
@@ -85,7 +82,6 @@ public class DriverService {
         url = PublicApi.addParamToUrl(url, "arsId", arsId);
 
         String name = (String) PublicApi.callAndGetFisrt(url).get("stnNm");
-        System.out.println("***************** 정류소 번호로 정류소 이름 조회" + name);
         return name;
     }
 
@@ -101,7 +97,6 @@ public class DriverService {
         url = PublicApi.addParamToUrl(url, "stId", stationId);
 
         JSONObject stationInfo = PublicApi.callAndGetFisrt(url);
-        System.out.println("***************** 정류소 아이디로 번호 조회" + stationInfo.get("arsId"));
         return (String) stationInfo.get("arsId");
     }
 

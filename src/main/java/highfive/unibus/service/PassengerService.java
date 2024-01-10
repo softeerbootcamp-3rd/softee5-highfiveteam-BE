@@ -179,7 +179,6 @@ public class PassengerService {
                         .vehicleNum((String) object.get("plainNo"))
                         .build();
                 simpMessagingTemplate.convertAndSend("/sub/" + "clientid", msg);
-                System.out.println("승객에게 알림" + msg);
                 return true;
             }
 
