@@ -23,12 +23,16 @@ public class Passenger {
             public void run() {
                 if (beforeRide) {
                     // 탑승할 역에서 알림
+                    System.out.println("탑승할 역 체크");
                     if (passengerService.notifyDepartureStation(busId, departureStationOrd)) {
+                        System.out.println("탑승역 지남");
                         beforeRide = false;
                     }
                 } else {
                     // 내릴 역에서 알림
+                    System.out.println("내릴 역 체크");
                     if (passengerService.notifyDepartureStation(busId, destinationStatioOrd)) {
+                        System.out.println("내릴역 지남");
                         timerFinish();
                     }
                 }
@@ -44,7 +48,7 @@ public class Passenger {
         this.busId = busReservationDto.getBusId();
         this.departureStationOrd = busReservationDto.getDepartureStationOrd();
         this.destinationStatioOrd = busReservationDto.getDestinationStationOrd();
-        this.beforeRide = false;
+        this.beforeRide = true;
         this.timer = new Timer();
         this.passengerService = passengerService;
     }

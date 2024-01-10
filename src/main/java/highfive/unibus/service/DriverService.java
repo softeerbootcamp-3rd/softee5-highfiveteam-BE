@@ -55,8 +55,8 @@ public class DriverService {
             JSONObject location = getLocationInfo(busId);
             String stationId = (String) location.get("stId"); // 정류소 고유 id
             String stationOrd = (String) location.get("stOrd"); // 정류소의 해당 노선에서의 순번
-            String arsId = getStationNumber(stationId);
-            String stationName = getStationName(arsId);
+            String arsId = getStationNumber(stationId); // 정류소 번호
+            String stationName = getStationName(arsId); // 정류소 이름
 
             DriverNotificationDto msg;
             StationPassengerInfoId id = new StationPassengerInfoId(busId, arsId);

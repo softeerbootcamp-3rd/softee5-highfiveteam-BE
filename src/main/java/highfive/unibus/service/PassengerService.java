@@ -178,7 +178,7 @@ public class PassengerService {
                         .stationName((String) object.get("congetion"))
                         .vehicleNum((String) object.get("plainNo"))
                         .build();
-                simpMessagingTemplate.convertAndSend("/topic/" + "clientid", msg);
+                simpMessagingTemplate.convertAndSend("/sub/" + "clientid", msg);
                 System.out.println("승객에게 알림" + msg);
                 return true;
             }
