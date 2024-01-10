@@ -127,12 +127,10 @@ public class PassengerService {
     }
 
     public void reserveBus(BusReservationDto busReservationDto) {
-        int busId = Integer.parseInt(busReservationDto.getBusId());
-        int departureStationNum = Integer.parseInt(busReservationDto.getDepartureStationNum());
-        int destinationStationNum = Integer.parseInt(busReservationDto.getDestinationStationNum());
+        String busId = busReservationDto.getBusId();
 
-        StationPassengerInfo departureInfo = makeStationPassengerInfo(busId, departureStationNum);
-        StationPassengerInfo destinationInfo = makeStationPassengerInfo(busId, destinationStationNum);;
+        StationPassengerInfo departureInfo = makeStationPassengerInfo(busId, busReservationDto.getDepartureStationNum());
+        StationPassengerInfo destinationInfo = makeStationPassengerInfo(busId, busReservationDto.getDestinationStationNum());;
 
         if (busReservationDto.getDisabilityType().equals("visual")) { // 시각 장애
             departureInfo.setVisualDisabilityNum(departureInfo.getVisualDisabilityNum() + 1);
@@ -141,9 +139,12 @@ public class PassengerService {
         }
 
         destinationInfo.setGetOffNum(destinationInfo.getGetOffNum() + 1);
+
+        stationPassengerInfoRepository.save(departureInfo);
+        stationPassengerInfoRepository.save(destinationInfo);
     }
 
-    private StationPassengerInfo makeStationPassengerInfo(int busId, int stationNum) {
+    private StationPassengerInfo makeStationPassengerInfo(String busId, String stationNum) {
         StationPassengerInfoId stationPassengerInfoId = new StationPassengerInfoId(busId, stationNum);
         StationPassengerInfo stationPassengerInfo;
 
@@ -164,18 +165,21 @@ public class PassengerService {
     }
 
     // 버스 아이디로 버스 위치 조회 (정류소 순번) - 출발지 정류소 순번이랑 비교
-    private boolean notifyDepartureStation(String busId, String stationNum) {
+    public boolean notifyDepartureStation(String busId, String stationOrd) {
 
         try {
             String url = PublicApi.initBaseUrl("buspos/getBusPosByVehId");
             url = PublicApi.addParamToUrl(url, "vehId", busId);
             JSONObject object = PublicApi.callAndGetFisrt(url);
-            if (object.get("stOrd").equals(stationNum)) {
+            System.out.println(object);
+
+            if (object.get("stOrd").equals(stationOrd)) {
                 PassengerNotificationDto msg = PassengerNotificationDto.builder()
                         .stationName((String) object.get("congetion"))
                         .vehicleNum((String) object.get("plainNo"))
                         .build();
                 simpMessagingTemplate.convertAndSend("/topic/" + "clientid", msg);
+                System.out.println("승객에게 알림" + msg);
                 return true;
             }
 
@@ -184,7 +188,6 @@ public class PassengerService {
         }
 
         return  false;
-
     }
 
 }

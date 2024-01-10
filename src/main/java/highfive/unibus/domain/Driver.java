@@ -29,9 +29,9 @@ public class Driver {
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
-                driverService.send();
+//                driverService.send();
                 System.out.println("10초");
-//                driverService.getNextStationInfo(Driver.this);
+                driverService.getNextStationInfo(Driver.this);
             }
         },0, 30000);
     }

@@ -10,5 +10,7 @@ public class BusReservationDto {
     private String disabilityType;
     private String departureStationNum;
     private String destinationStationNum;
+    private String departureStationOrd;
+    private String destinationStationOrd;
 
 }

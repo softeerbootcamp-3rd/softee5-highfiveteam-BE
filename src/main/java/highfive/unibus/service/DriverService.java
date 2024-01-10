@@ -53,22 +53,26 @@ public class DriverService {
 
         try {
             JSONObject location = getLocationInfo(busId);
-            String stationId = (String) location.get("stId");
-            String stationOrd = (String) location.get("stOrd");
+            String stationId = (String) location.get("stId"); // 정류소 고유 id
+            String stationOrd = (String) location.get("stOrd"); // 정류소의 해당 노선에서의 순번
             String arsId = getStationNumber(stationId);
             String stationName = getStationName(arsId);
 
-            DriverNotificationDto dto = new DriverNotificationDto(stationName);
-
-            StationPassengerInfoId id = new StationPassengerInfoId(Integer.parseInt(busId), Integer.parseInt(arsId));
+            DriverNotificationDto msg;
+            StationPassengerInfoId id = new StationPassengerInfoId(busId, arsId);
 
             if (isStationOrdChange(prevStationOrd, stationOrd)) {
                 driver.updateStationOrd(stationOrd); // 버스의 정류소 순번 업데이트
                 if (stationPassengerInfoRepository.findById(id).isPresent()) { // 버스 탑승/하차 인원을 db에서 조회
+                    System.out.println("*************** 디비에서 조회 성공");
                     StationPassengerInfo result = stationPassengerInfoRepository.findById(id).get();
-                    dto = new DriverNotificationDto(result);
+                    System.out.println(result);
+                    msg = new DriverNotificationDto(result, stationName);
+                } else {
+                    msg = new DriverNotificationDto(stationName);
                 }
-                simpMessagingTemplate.convertAndSend("/sub/" + busId, dto);
+                simpMessagingTemplate.convertAndSend("/sub/" + busId, msg);
+                System.out.println("버스 기사에게 알림" + msg.toString());
             }
         } catch (Exception e) {
             System.out.println(e.toString());
@@ -80,7 +84,9 @@ public class DriverService {
         String url = PublicApi.initBaseUrl("stationinfo/getLowStationByUid");
         url = PublicApi.addParamToUrl(url, "arsId", arsId);
 
-        return (String) PublicApi.callAndGetFisrt(url).get("stnNm");
+        String name = (String) PublicApi.callAndGetFisrt(url).get("stnNm");
+        System.out.println("***************** 정류소 번호로 정류소 이름 조회" + name);
+        return name;
     }
 
     public JSONObject getLocationInfo(String busId) throws IOException, ParseException {
@@ -95,6 +101,7 @@ public class DriverService {
         url = PublicApi.addParamToUrl(url, "stId", stationId);
 
         JSONObject stationInfo = PublicApi.callAndGetFisrt(url);
+        System.out.println("***************** 정류소 아이디로 번호 조회" + stationInfo.get("arsId"));
         return (String) stationInfo.get("arsId");
     }
 

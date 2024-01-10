@@ -57,7 +57,7 @@ public class PassengerController {
 
     @PostMapping("/reservation")
     public ApiResponse reserveBus(@RequestBody BusReservationDto busReservationDto) {
-        Passenger passenger = new Passenger(busReservationDto);
+        Passenger passenger = new Passenger(busReservationDto, passengerService);
         passengers.put(busReservationDto.getPassengerId(), passenger);
         passenger.timerStart();
 

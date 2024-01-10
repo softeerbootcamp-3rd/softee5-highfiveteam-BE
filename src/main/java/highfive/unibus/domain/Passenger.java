@@ -1,46 +1,52 @@
 package highfive.unibus.domain;
 
 import highfive.unibus.dto.passenger.BusReservationDto;
-import lombok.AllArgsConstructor;
+import highfive.unibus.service.PassengerService;
+import lombok.RequiredArgsConstructor;
 
 import java.util.Timer;
 import java.util.TimerTask;
 
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class Passenger {
 
     private String busId;
-    private String departureStationNum;
-    private String destinationStatioNum;
-    private boolean inBus;
+    private String departureStationOrd;
+    private String destinationStatioOrd;
+    private boolean beforeRide;
     private Timer timer;
+    private final PassengerService passengerService;
 
     public void timerStart() {
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
-                if (inBus) {
-                    // 내릴 역에서 알림
-                } else {
+                if (beforeRide) {
                     // 탑승할 역에서 알림
-
+                    if (passengerService.notifyDepartureStation(busId, departureStationOrd)) {
+                        beforeRide = false;
+                    }
+                } else {
+                    // 내릴 역에서 알림
+                    if (passengerService.notifyDepartureStation(busId, destinationStatioOrd)) {
+                        timerFinish();
+                    }
                 }
-                // 10초마다 실행할 코드
-                // api 호출하고, destinationNum과 같은지 비교해서 도착 여부 알림
             }
-        },0, 10000);
+        },0, 30000);
     }
 
     public void timerFinish() {
         timer.cancel();
     }
 
-    public Passenger(BusReservationDto busReservationDto) {
+    public Passenger(BusReservationDto busReservationDto, PassengerService passengerService) {
         this.busId = busReservationDto.getBusId();
-        this.departureStationNum = busReservationDto.getDepartureStationNum();
-        this.destinationStatioNum = busReservationDto.getDestinationStationNum();
-        this.inBus = false;
+        this.departureStationOrd = busReservationDto.getDepartureStationOrd();
+        this.destinationStatioOrd = busReservationDto.getDestinationStationOrd();
+        this.beforeRide = false;
         this.timer = new Timer();
+        this.passengerService = passengerService;
     }
 
 }

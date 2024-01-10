@@ -22,4 +22,14 @@ public class StationPassengerInfo {
 
     private int getOffNum;
 
+    @Override
+    public String toString() {
+        return "StationPassengerInfo{" +
+                "stationPassengerInfoId=" + stationPassengerInfoId +
+                ", stationName='" + stationName + '\'' +
+                ", physicalDisabilityNum=" + physicalDisabilityNum +
+                ", visualDisabilityNum=" + visualDisabilityNum +
+                ", getOffNum=" + getOffNum +
+                '}';
+    }
 }
