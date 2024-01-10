@@ -5,6 +5,7 @@ import highfive.unibus.domain.Driver;
 import highfive.unibus.domain.StationPassengerInfo;
 import highfive.unibus.domain.StationPassengerInfoId;
 import highfive.unibus.dto.driver.DriverNotificationDto;
+import highfive.unibus.dto.passenger.StationDto;
 import highfive.unibus.repository.StationPassengerInfoRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -34,6 +35,16 @@ public class DriverService {
     private final StationPassengerInfoRepository stationPassengerInfoRepository;
     private final SimpMessagingTemplate simpMessagingTemplate;
 
+    public void send() {
+        DriverNotificationDto s = DriverNotificationDto.builder()
+                .stationName("다음 역")
+                .visualDisabilityNum(3)
+                .physicalDisabilityNum(2)
+                .getOffNum(1)
+                .build();
+        simpMessagingTemplate.convertAndSend("/sub/" + "1", s);
+    }
+
     @Transactional
     public void getNextStationInfo(Driver driver) {
 
@@ -42,22 +53,23 @@ public class DriverService {
 
         try {
             JSONObject location = getLocationInfo(busId);
-            String stationId = (String) location.get("stId");
-            String stationOrd = (String) location.get("stOrd");
-            String arsId = getStationNumber(stationId);
-            String stationName = getStationName(arsId);
+            String stationId = (String) location.get("stId"); // 정류소 고유 id
+            String stationOrd = (String) location.get("stOrd"); // 정류소의 해당 노선에서의 순번
+            String arsId = getStationNumber(stationId); // 정류소 번호
+            String stationName = getStationName(arsId); // 정류소 이름
 
-            DriverNotificationDto dto = new DriverNotificationDto(stationName);
-
-            StationPassengerInfoId id = new StationPassengerInfoId(Integer.parseInt(busId), Integer.parseInt(arsId));
+            DriverNotificationDto msg;
+            StationPassengerInfoId id = new StationPassengerInfoId(busId, arsId);
 
             if (isStationOrdChange(prevStationOrd, stationOrd)) {
                 driver.updateStationOrd(stationOrd); // 버스의 정류소 순번 업데이트
                 if (stationPassengerInfoRepository.findById(id).isPresent()) { // 버스 탑승/하차 인원을 db에서 조회
                     StationPassengerInfo result = stationPassengerInfoRepository.findById(id).get();
-                    dto = new DriverNotificationDto(result);
+                    msg = new DriverNotificationDto(result, stationName);
+                } else {
+                    msg = new DriverNotificationDto(stationName);
                 }
-                simpMessagingTemplate.convertAndSend("/topic/" + busId, dto);
+                simpMessagingTemplate.convertAndSend("/sub/" + busId, msg);
             }
         } catch (Exception e) {
             System.out.println(e.toString());
@@ -69,7 +81,8 @@ public class DriverService {
         String url = PublicApi.initBaseUrl("stationinfo/getLowStationByUid");
         url = PublicApi.addParamToUrl(url, "arsId", arsId);
 
-        return (String) PublicApi.callAndGetFisrt(url).get("stnNm");
+        String name = (String) PublicApi.callAndGetFisrt(url).get("stnNm");
+        return name;
     }
 
     public JSONObject getLocationInfo(String busId) throws IOException, ParseException {

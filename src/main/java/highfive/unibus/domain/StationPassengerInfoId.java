@@ -14,8 +14,8 @@ import java.io.Serializable;
 @AllArgsConstructor
 public class StationPassengerInfoId implements Serializable {
     @Column(name = "bus_id")
-    private int busId;
+    private String busId;
 
     @Column(name = "station_id")
-    private int stationId;
+    private String stationId;
 }

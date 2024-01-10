@@ -41,6 +41,7 @@ public class PublicApi {
         }
 
         String result = rd.readLine();
+        System.out.println(result);
         rd.close();
         conn.disconnect();
 

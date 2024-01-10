@@ -6,6 +6,7 @@ import highfive.unibus.service.DriverService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -19,9 +20,9 @@ import java.util.Timer;
 public class DriverController {
 
     private final DriverService driverService;
-    private static Map<String, Driver> drivers = new HashMap<>();
+    private static final Map<String, Driver> drivers = new HashMap<>();
 
-    @GetMapping("/driver/start")
+    @PostMapping("/driver/start")
     public void driveStart(@RequestBody BusInfoDto dto) {
         Driver driver = new Driver(dto.getBusId(), new Timer(), driverService);
         drivers.put(dto.getBusId(), driver);
@@ -29,7 +30,7 @@ public class DriverController {
         driver.timerStart();
     }
 
-    @GetMapping("/driver/stop")
+    @PostMapping("/driver/stop")
     public void driveStop(@RequestBody BusInfoDto dto) {
         Driver driver = drivers.get(dto.getBusId());
         driver.timerFinish();
